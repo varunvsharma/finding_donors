@@ -1,187 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
-<!--START_WEBSOCKET_SHIM-->
-<!--
-    This file was served from behind a reverse proxy that does not support websockets.
-
-    The following code snippet has been inserted by the proxy to replace websockets
-    with HTTP requests that will work with this proxy.
-
-    If this snippet insertion is causing issues, then contact the server administrator.
--->
-<script>
-(function() {
-    if (typeof window.nativeWebSocket !== 'undefined') {
-      // We have already replaced websockets
-      return;
-    }
-    console.log('Replacing native websockets with a shim');
-    window.nativeWebSocket = window.WebSocket;
-    const  location = window.location;
-    const shimUri = location.protocol + '//' + location.host + '/websocket-shim/';
-
-    function shouldShimWebsockets(url) {
-      var parsedURL = new URL(url);
-      if (typeof parsedURL.host == 'undefined') {
-        parsedURL.host = location.host;
-      }
-      return (parsedURL.host == location.host);
-    }
-
-    function WebSocketShim(url, protocols) {
-      if (!shouldShimWebsockets(url)) {
-        console.log("Not shimming websockets for " + parsedURL.host + " as it does not match the location of " + location.host);
-        return new window.nativeWebSocket(url, protocols);
-      }
-
-      // We need to reference "this" within nested functions, so we alias it to "self"
-      var self = this;
-
-      this.readyState = WebSocketShim.CONNECTING;
-      function openedHandler(msg) {
-        self.readyState = WebSocketShim.OPEN;
-        if (self.onopen) {
-          self.onopen({ target: self });
-        }
-      }
-      function receiveHandler(resp) {
-        var msgs = JSON.parse(resp);
-        if (self.onmessage) {
-          msgs.forEach(function(msg) {
-            if (Array.isArray(msg)) {
-              msg = new Blob(msg);
-            }
-            self.onmessage({ target: self, data: msg });
-          });
-        }
-      }
-      function errorHandler() {
-        if (self.onerror) {
-          self.onerror({ target: self });
-        }
-      }
-      self.xhr = function(action, msg, onsuccess, onexit) {
-        var req = new XMLHttpRequest();
-        req.onreadystatechange = function() {
-          if (req.readyState === 4) {
-            if (req.status === 200) {
-              if (onsuccess) {
-                onsuccess(req.responseText);
-              }
-            } else if (req.status !== 408) {
-              errorHandler();
-            }
-            if (onexit) {
-              onexit();
-            }
-          }
-        };
-        req.open("POST", shimUri + action, true);
-        if (typeof msg !== 'string') {
-          msg = JSON.stringify(msg);
-        }
-        req.send(msg);
-      }
-
-      self.closedHandler = function() {
-        self.readyState = WebSocketShim.CLOSED;
-        if (self.onclose) {
-          self.onclose({ target: self });
-        }
-      }
-
-      self.pendingMessages = [];
-      self.needsConversion = function(msg) {
-        if (typeof msg == 'string') {
-          return false;
-        }
-        if (Array.isArray(msg)) {
-          if (msg.length == 1) {
-            if (typeof msg[0] == 'string') {
-              return false;
-            }
-          }
-        }
-        return true;
-      }
-      self.convertMessagesAndPush = function(msgs) {
-        for (var i = 0; i < msgs.length; i++) {
-          if (self.needsConversion(msgs[i].msg)) {
-            var blob = new Blob([msgs[i].msg]);
-            var reader = new FileReader();
-            reader.addEventListener("loadend", function() {
-              msgs[i].msg = [reader.result];
-              self.convertMessagesAndPush(msgs);
-            });
-            reader.readAsText(blob);
-            return;
-          }
-        }
-        self.xhr('data', msgs, null, function() {
-          self.pushing = false;
-          self.push();
-        });
-      }
-      self.push = function() {
-         if (self.pushing) {
-           return;
-         }
-         if (self.pendingMessages.length == 0) {
-           return;
-         }
-         self.pushing = true;
-         var msgs = self.pendingMessages;
-         self.pendingMessages = [];
-         self.convertMessagesAndPush(msgs);
-      }
-
-      function poll() {
-        if (self.readyState != WebSocketShim.OPEN) {
-          return;
-        }
-        self.xhr('poll', {'id': self._sessionID}, receiveHandler, poll);
-      }
-
-      self.xhr('open', url, function(resp) {
-        respJSON = JSON.parse(resp);
-        self._sessionID = respJSON.id;
-        openedHandler(respJSON.msg);
-        poll();
-      });
-    }
-    WebSocketShim.prototype = {
-      binaryType: "blob",
-      onopen: null,
-      onclose: null,
-      onmessage: null,
-      onerror: null,
-
-      send: function(data) {
-        if (this.readyState != WebSocketShim.OPEN) {
-          throw new Error('WebSocket is not yet opened');
-        }
-        this.pendingMessages.push({'id': this._sessionID, 'msg': data});
-        this.push();
-      },
-      close: function() {
-        if (this.readyState != WebSocketShim.OPEN) {
-          return;
-        }
-        this.readyState = WebSocketShim.CLOSING;
-        this.xhr('close', {'id': this._sessionID}, false, this.closedHandler);
-      },
-    };
-    WebSocketShim.CONNECTING = 0;
-    WebSocketShim.OPEN = 1;
-    WebSocketShim.CLOSING = 2;
-    WebSocketShim.CLOSED = 3;
-
-    window.WebSocket = WebSocketShim;
-})();
-</script>
-<!--END_WEBSOCKET_SHIM-->
-<meta charset="utf-8" />
+<head><meta charset="utf-8" />
 
 <title>finding_donors</title>
 
@@ -13299,8 +13118,8 @@ div#notebook {
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Import libraries necessary for this project</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
-<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span> <span class="c1"># Allows the use of display() for DataFrames</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">time</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">display</span> <span class="c1"># Allows the use of display() for DataFrames</span>
 
 <span class="c1"># Import supplementary visualization code visuals.py</span>
 <span class="kn">import</span> <span class="nn">visuals</span> <span class="k">as</span> <span class="nn">vs</span>
@@ -13690,7 +13509,7 @@ Percentage of individuals making more than $50,000: 24.78439697492371%
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Import sklearn.preprocessing.StandardScaler</span>
-<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">MinMaxScaler</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">MinMaxScaler</span>
 
 <span class="c1"># Initialize a scaler, then apply it to the features</span>
 <span class="n">scaler</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">()</span> <span class="c1"># default=(0, 1)</span>
@@ -13955,7 +13774,7 @@ Percentage of individuals making more than $50,000: 24.78439697492371%
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Import train_test_split</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">train_test_split</span>
 
 <span class="c1"># Split the &#39;features&#39; and &#39;income&#39; data into training and testing sets</span>
 <span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">features_final</span><span class="p">,</span> 
@@ -14049,7 +13868,7 @@ It is a ratio of true positives(words classified as spam, and which are actually
 <span class="sd">FN = 0 # No predicted negatives in the naive case</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="c1"># TODO: Calculate accuracy, precision and recall</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">fbeta_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">fbeta_score</span>
 <span class="n">preds_naive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">income</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">income</span><span class="p">,</span> <span class="n">preds_naive</span><span class="p">)</span>
 <span class="n">recall</span> <span class="o">=</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">income</span><span class="p">,</span> <span class="n">preds_naive</span><span class="p">)</span>
@@ -14237,7 +14056,7 @@ In the code block below, you will need to implement the following:</p>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># TODO: Import two metrics from sklearn - fbeta_score and accuracy_score</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">fbeta_score</span><span class="p">,</span> <span class="n">accuracy_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">fbeta_score</span><span class="p">,</span> <span class="n">accuracy_score</span>
 <span class="k">def</span> <span class="nf">train_predict</span><span class="p">(</span><span class="n">learner</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">,</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">):</span> 
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    inputs:</span>
@@ -14320,8 +14139,8 @@ In the code block below, you will need to implement the following:</p>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># TODO: Import the three supervised learning models from sklearn</span>
-<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">AdaBoostClassifier</span><span class="p">,</span> <span class="n">RandomForestClassifier</span>
-<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="kn">import</span> <span class="n">SVC</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">AdaBoostClassifier</span><span class="p">,</span> <span class="n">RandomForestClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="k">import</span> <span class="n">SVC</span>
 <span class="c1"># TODO: Initialize the three models</span>
 <span class="n">clf_A</span> <span class="o">=</span> <span class="n">AdaBoostClassifier</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
 <span class="n">clf_B</span> <span class="o">=</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
@@ -14446,11 +14265,15 @@ Look at the graph at the bottom left from the cell above(the visualization creat
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><strong>Answer: </strong></p>
-<p>The AdaBoost or "Adaptive Boosting" algorithm utilizes a number of weak learners and adapts to the performance of each weak learner to train the subsequent learner. It does this by boosting the value of the misclassified labels and consequently increases the penalty given to the subsequent learner for misclassifying those particular labels. This forces the next weak learner to focus more on correctly classifying previously misclassified labels. Each weak learner is then assigned a weight based on its level of accuracy (the boosted values of the previously misclassfied points are taken into account when calculating the accuracy score of each weak learner). The hypotheses (predictions) created by these weak learners are then combined along with their weights to create the final strong learner.<sup>1, 2, 3, 4</sup></p>
-<p>For the current problem, the AdaBoost algorithm will be trained on the training set by using simple decision trees as the weak learners. The trained strong learner will then be used to predict income levels for individuals based on an individual's feature set.</p>
+<p>AdaBoost or "Adaptive Boosting" is a machine learning technique that involves the sequential evolution of weak learners, which in this case are simple classifiers, as they go through the training process. The training process allows the classifiers to learn about the relationship between the input data the output label/value. In this algorithm the value of the points that the classifiers found difficult to classify are boosted (increased) to force subsequent classifiers in the sequence to focus more on these difficult points. This is the adaptive part of adaptive boosting. The algorithm continuously adapts to what each classifier is able to do. Each of these classifiers is then given a weight based on how accurate it is. Finally all the classifiers are combined together based on their weights (i.e., the algorithm gives more importance to the better performing classifiers and less importance to the ones that weren't so accurate) to create the final high performing classifier. This final classifier is then used to make predictions.</p>
+<p>The weak learners or simple classifiers described above are machine learning algorithms that give better accuracy than random guessing. In this particular case a weak learner might be one that is able to determine the impact of education on income but doesn't take any of the other factors into account while make its predictions. While this may not result in incredibly accurate predictions, it is better than random guessing.</p>
+<p>Such weak learners however end up only focusing on a subsection of the problem so we add additional weak learners to focus on the remaining sections. These weak learners are then combined in a manner that allows the final combination to leverage their individual strengths and take their individual predictive capabilities into account on cases where there might be some overlap.</p>
+<p>One final point that is worth mentioning is in relation to the specific weak learner that has been chosen to tackle the problem on hand. The weak learners of choice for this project are decision trees. A decision tree algorithm basically segments the data on a set of criteria. The tree starts with a single criterion (a question about the data), and then splits the data based on that criterion (the response to the question). The process can continue till every single point has been perfectly classified however, to ensure our decision trees are weak learners, we can limit the number of questions they are allowed to ask, which in this case is one question. Decision trees are considered to be good weak learners since they are capable of being more accurate than random guessing without changing any of their parameters. In addition to that they are computationally very efficient and very fast to train. This is a big advantage when one is dealing with a large number of weak learners. Finally by simply changing the number of questions they are allowed to ask one can easily affect the performance of the AdaBoost algorithm.</p>
 <p>References:</p>
 <ol>
-<li><a href="https://www.udacity.com/">Machine Learning - Introduction Nanodegree, Udacity</a></li>
+<li><a href="https://www.udacity.com/">Machine Learning - Introduction Nanodegree and Project Review, Udacity</a></li>
+<li><a href="https://matterhorn.dce.harvard.edu/engage/player/watch.html?id=6f374ba5-6e54-432c-9916-fb61fa2327ef">Hanspeter Pfister, Joe Blitzstein, Verena Kaynig, CS 109/Stat 121/AC209/E-109, Data Science, Ensemble Learning and Random Forests - Harvard University</a></li>
+<li><a href="https://stats.stackexchange.com/questions/124628/why-adaboost-with-decision-trees">Why Adaboost with Decision Trees - Stack Exchange</a></li>
 <li><a href="https://cseweb.ucsd.edu/~yfreund/papers/IntroToBoosting.pdf">Yoav Freund and Robert E. Schapire, A Short Introduction to Boosting, Journal of Japanese Society for Artificial Intelligence,
 14(5):771-780, September, 1999</a></li>
 <li><a href="http://users.cecs.anu.edu.au/~wanglei/SPR_course/boosting.pdf">Boosting: Algorithms and Applications, Lecture 11, ENGN 4522/6520, Statistical Pattern Recognition and Its Applications in Computer Vision, Australian National University 2nd Semester, 2008, Chunhua Shen, NICTA/RSISE</a></li>
@@ -14490,8 +14313,8 @@ Look at the graph at the bottom left from the cell above(the visualization creat
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># TODO: Import &#39;GridSearchCV&#39;, &#39;make_scorer&#39;, and any other necessary libraries</span>
-<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">GridSearchCV</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">make_scorer</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">GridSearchCV</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">make_scorer</span>
 <span class="c1"># TODO: Initialize the classifier</span>
 <span class="n">clf</span> <span class="o">=</span> <span class="n">AdaBoostClassifier</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
 
@@ -14736,7 +14559,7 @@ Final F-score on the testing data: 0.7448
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Import functionality for cloning a model</span>
-<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="kn">import</span> <span class="n">clone</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">clone</span>
 
 <span class="c1"># Reduce the feature space</span>
 <span class="n">X_train_reduced</span> <span class="o">=</span> <span class="n">X_train</span><span class="p">[</span><span class="n">X_train</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">importances</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])[:</span><span class="mi">5</span><span class="p">]]]</span>
